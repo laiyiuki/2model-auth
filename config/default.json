@@ -6,5 +6,26 @@
     "default": 10,
     "max": 50
   },
-  "mongodb": "mongodb://localhost:27017/learn_la_api"
+  "mongodb": "mongodb://localhost:27017/learn_la_api",
+  "authentication": {
+    "secret": "8a797781680a596e4e108a1134b83f9dff2c056279f8f32ac89ea1af920fcd69c39c8e41982a7e1216b5d9159e9c4316a854e4e3d0d568ac10caedf539baf7f8e821c80650952e3e2c6d96a91ea23c8deb40bb5ecfe8cf9c5e59acda0ac55cd77961a368e6e6dff1267d66a7814018fcfe068f9110484b53475e14711c6675b84844c66aa61afc30d3bf1893d1a7005749bdd75bde998071e74b79bf0a0235a5e194ca73635bf8d32148bd17c1fff9b35a60d9fb7e31227bfe48f3eb8c7802f70339ae676015c33b2b9e24e456ea2b105b72188025151d10694d54e95d41266349464cc0d4c42b7fc6aa107a9282c5d0220acdb68ed7153a866d4c18373f63d7",
+    "strategies": ["jwt", "local"],
+    "path": "/authentication",
+    "service": "students",
+    "jwt": {
+      "header": {
+        "typ": "access"
+      },
+      "audience": "https://yourdomain.com",
+      "subject": "anonymous",
+      "issuer": "feathers",
+      "algorithm": "HS256",
+      "expiresIn": "1d"
+    },
+    "local": {
+      "entity": "user",
+      "usernameField": "phone",
+      "passwordField": "password"
+    }
+  }
 }
