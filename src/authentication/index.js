@@ -3,9 +3,12 @@ const { protect } = require('@feathersjs/authentication-local').hooks;
 
 const jwt = require('@feathersjs/authentication-jwt');
 const local = require('@feathersjs/authentication-local');
+const oauth2 = require('@feathersjs/authentication-oauth2');
+const FacebookTokenStrategy = require('passport-facebook-token');
 
 const LocalVerifier = require('./verifiers/local-verifier');
 const JwtVerifier = require('./verifiers/jwt-verifier');
+const FacebookTokenVerifier = require('./verifiers/facebook-token-verifier');
 
 module.exports = function(app) {
   const config = app.get('authentication');
@@ -14,6 +17,31 @@ module.exports = function(app) {
   app.configure(authentication(config));
   app.configure(jwt({ Verifier: JwtVerifier }));
   app.configure(local({ Verifier: LocalVerifier }));
+  app.configure(
+    oauth2(
+      Object.assign(
+        {
+          name: 'facebookTokenTeacher',
+          Strategy: FacebookTokenStrategy,
+          Verifier: FacebookTokenVerifier,
+        },
+        config.facebookTokenTeacher
+      )
+    )
+  );
+  app.configure(
+    oauth2(
+      Object.assign(
+        {
+          name: 'facebookTokenStudent',
+          Strategy: FacebookTokenStrategy,
+          Verifier: FacebookTokenVerifier,
+        },
+        config.facebookTokenStudent
+      )
+    )
+  );
+  console.log('app.config', config.facebookTokenStudent);
 
   // The `authentication` service is used to create a JWT.
   // The before `create` hook registers strategies that can be used

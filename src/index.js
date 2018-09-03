@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 /* eslint-disable no-console */
 const logger = require('./logger');
 const app = require('./app');
@@ -9,5 +11,9 @@ process.on('unhandledRejection', (reason, p) =>
 );
 
 server.on('listening', () =>
-  logger.info('Feathers application started on http://%s:%d', app.get('host'), port)
+  logger.info(
+    'Feathers application started on http://%s:%d',
+    app.get('host'),
+    port
+  )
 );

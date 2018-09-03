@@ -21,15 +21,24 @@ const {
 } = require('feathers-hooks-common');
 const { restrictToOwner } = require('feathers-authentication-hooks');
 
+const processDataFromFacebook = require('./hooks/before/process-data-from-facebook');
+
 module.exports = {
   before: {
     all: [],
     find: [
       iff(isProvider('external'), authenticate('jwt')),
-      ctx => console.log('params.user', ctx.params.user),
+      // ctx => console.log('params.user', ctx.params.user),
     ],
     get: [],
-    create: [hashPassword()],
+    create: [
+      processDataFromFacebook(),
+      // iffElse(
+      //   isFacebookSignUp(),
+      //   [processDataFromFacebook()],
+      //   [constructPhone(), isNewUser(), verifyOneTimeToken(), hashPassword()],
+      // ),
+    ],
     update: [],
     patch: [],
     remove: [],
