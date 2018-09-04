@@ -13,6 +13,7 @@ const {
   disallow,
   iff,
   iffElse,
+  isNot,
   isProvider,
   keep,
   paramsFromClient,
@@ -21,23 +22,57 @@ const {
 } = require('feathers-hooks-common');
 const { restrictToOwner } = require('feathers-authentication-hooks');
 
+const { isAction } = require('../../hooks');
+const {
+  constructPhone,
+  isNewUser,
+  processDataFromFacebook,
+} = require('./hooks/before');
+const { requestSMSVerifyCode } = require('./hooks/after');
+
 module.exports = {
   before: {
     all: [],
     find: [
-      iff(isProvider('external'), authenticate('jwt')),
-      ctx => console.log('params.user', ctx.params.user),
+      iff(isProvider('external'), [
+        iff(isNot(isAction('phone-sign-up')), authenticate('jwt')),
+      ]),
     ],
-    get: [],
-    create: [hashPassword()],
-    update: [],
-    patch: [],
-    remove: [],
+    get: [
+      iff(isProvider('external'), [
+        authenticate('jwt'),
+        restrictToOwner({ ownerField: '_id' }),
+      ]),
+    ],
+    create: [
+      disableMultiItemCreate(),
+      iffElse(
+        isAction('facebook-sign-up'),
+        [processDataFromFacebook()],
+        [constructPhone(), isNewUser(), hashPassword()]
+      ),
+      // iffElse(
+      //   isFacebookSignUp(),
+      //   [processDataFromFacebook()],
+      //   [constructPhone(), isNewUser(), verifyOneTimeToken(), hashPassword()],
+      // ),
+    ],
+    update: [disallow()],
+    patch: [
+      iff(isProvider('external'), authenticate('jwt')),
+      disableMultiItemChange(),
+    ],
+    remove: [disallow()],
   },
 
   after: {
     all: [protect('password')],
-    find: [],
+    find: [
+      iff(isAction('phone-sign-up'), [
+        requestSMSVerifyCode(),
+        keep('_id', 'createdAt'),
+      ]),
+    ],
     get: [],
     create: [],
     update: [],

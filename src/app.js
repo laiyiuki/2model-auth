@@ -16,7 +16,7 @@ const appHooks = require('./app.hooks');
 const channels = require('./channels');
 
 const mongoose = require('./mongoose');
-
+const twillio = require('./twillio');
 const authentication = require('./authentication');
 
 const app = express(feathers());
@@ -38,6 +38,7 @@ app.configure(express.rest());
 app.configure(socketio());
 
 app.configure(mongoose);
+app.configure(twillio);
 
 // Configure other middleware (see `middleware/index.js`)
 app.configure(middleware);

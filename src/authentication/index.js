@@ -21,18 +21,6 @@ module.exports = function(app) {
     oauth2(
       Object.assign(
         {
-          name: 'facebookTokenTeacher',
-          Strategy: FacebookTokenStrategy,
-          Verifier: FacebookTokenVerifier,
-        },
-        config.facebookTokenTeacher
-      )
-    )
-  );
-  app.configure(
-    oauth2(
-      Object.assign(
-        {
           name: 'facebookTokenStudent',
           Strategy: FacebookTokenStrategy,
           Verifier: FacebookTokenVerifier,
@@ -41,14 +29,31 @@ module.exports = function(app) {
       )
     )
   );
-  console.log('app.config', config.facebookTokenStudent);
+  app.configure(
+    oauth2(
+      Object.assign(
+        {
+          name: 'facebookTokenTeacher',
+          Strategy: FacebookTokenStrategy,
+          Verifier: FacebookTokenVerifier,
+        },
+        config.facebookTokenTeacher
+      )
+    )
+  );
 
   // The `authentication` service is used to create a JWT.
   // The before `create` hook registers strategies that can be used
   // to create a new valid JWT (e.g. local or oauth2)
   app.service('authentication').hooks({
     before: {
-      // all: [ctx => console.log('before ctx.method', ctx.method)],
+      all: [
+        // ctx => console.log('before ctx.method', ctx.method),
+        // ctx => {
+        //   ctx.params.authenticated = false;
+        // },
+        // ctx => console.log('before ctx.params.auth', ctx.params.authenticated),
+      ],
       create: [authentication.hooks.authenticate(config.strategies)],
       remove: [authentication.hooks.authenticate('jwt')],
     },

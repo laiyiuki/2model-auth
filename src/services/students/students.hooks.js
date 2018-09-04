@@ -13,6 +13,7 @@ const {
   disallow,
   iff,
   iffElse,
+  isNot,
   isProvider,
   keep,
   paramsFromClient,
@@ -21,32 +22,55 @@ const {
 } = require('feathers-hooks-common');
 const { restrictToOwner } = require('feathers-authentication-hooks');
 
-const processDataFromFacebook = require('./hooks/before/process-data-from-facebook');
+const { isAction } = require('../../hooks');
+const {
+  constructPhone,
+  isNewUser,
+  processDataFromFacebook,
+  verifyOneTimeToken,
+} = require('./hooks/before');
+const { requestSMSVerifyCode } = require('./hooks/after');
 
 module.exports = {
   before: {
-    all: [],
+    all: [paramsFromClient('action')],
     find: [
-      iff(isProvider('external'), authenticate('jwt')),
-      // ctx => console.log('params.user', ctx.params.user),
+      ctx => console.log('ctx.params', ctx.params),
+
+      iff(isProvider('external'), [
+        iff(isNot(isAction('phone-sign-up')), authenticate('jwt')),
+      ]),
     ],
-    get: [],
+    get: [
+      iff(isProvider('external'), [
+        authenticate('jwt'),
+        restrictToOwner({ ownerField: '_id' }),
+      ]),
+    ],
     create: [
-      processDataFromFacebook(),
-      // iffElse(
-      //   isFacebookSignUp(),
-      //   [processDataFromFacebook()],
-      //   [constructPhone(), isNewUser(), verifyOneTimeToken(), hashPassword()],
-      // ),
+      disableMultiItemCreate(),
+      iffElse(
+        isAction('facebook-sign-up'),
+        [processDataFromFacebook()],
+        [constructPhone(), isNewUser(), verifyOneTimeToken(), hashPassword()]
+      ),
     ],
-    update: [],
-    patch: [],
-    remove: [],
+    update: [disallow()],
+    patch: [
+      iff(isProvider('external'), authenticate('jwt')),
+      disableMultiItemChange(),
+    ],
+    remove: [disallow()],
   },
 
   after: {
     all: [protect('password')],
-    find: [],
+    find: [
+      iff(isAction('phone-sign-up'), [
+        requestSMSVerifyCode(),
+        keep('_id', 'createdAt'),
+      ]),
+    ],
     get: [],
     create: [],
     update: [],

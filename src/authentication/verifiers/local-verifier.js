@@ -2,11 +2,10 @@ const { BadRequest, NotFound } = require('@feathersjs/errors');
 const { Verifier } = require('@feathersjs/authentication-local');
 
 class LocalVerifier extends Verifier {
-  // The verify function has the exact same inputs and
-  // return values as a vanilla passport strategy
   async verify(req, username, password, done) {
     try {
       const { phone, password, platform } = req.body;
+      console.log('req.body', req.body);
 
       if (
         platform !== 'student' &&
