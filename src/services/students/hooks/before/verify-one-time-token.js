@@ -5,6 +5,7 @@ module.exports = function verifyOneTimeToken() {
   return async context => {
     if (!parseInt(process.env.DISABLE_TOKEN_VERIFICATION)) {
       const { phone, token } = context.data;
+      console.log('ctx.data', ctx.data);
 
       if (!phone || !token) {
         throw new BadRequest('phone and token are required.');

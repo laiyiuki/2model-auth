@@ -19,6 +19,8 @@ const mongoose = require('./mongoose');
 const twillio = require('./twillio');
 const authentication = require('./authentication');
 
+const verifyPhone = require('./twillio/verify-phone');
+
 const app = express(feathers());
 
 // Load app configuration
@@ -47,6 +49,9 @@ app.configure(authentication);
 app.configure(services);
 // Set up event channels (see channels.js)
 app.configure(channels);
+
+// additional routes
+app.configure(verifyPhone);
 
 // Configure a middleware for 404s and the error handler
 app.use(express.notFound());

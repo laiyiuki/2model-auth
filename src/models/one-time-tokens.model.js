@@ -12,6 +12,6 @@ module.exports = function(app) {
     }
   );
 
-  oneTimeTokens.index({ updatedAt: 1 }, { expireAfterSeconds: 600 });
+  oneTimeTokens.index({ updatedAt: 1 }, { expireAfterSeconds: 900 });
   return mongooseClient.model('oneTimeTokens', oneTimeTokens);
 };

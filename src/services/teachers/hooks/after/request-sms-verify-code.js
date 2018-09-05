@@ -4,7 +4,7 @@ const { promisify } = require('util');
 
 module.exports = function requestSMSVerifyCode() {
   return async context => {
-    const twillioClient = app.get('twillioClient');
+    const twillioClient = context.app.get('twillioClient');
     const requestVerifyCode = promisify(
       twillioClient.phones().verification_start
     );
