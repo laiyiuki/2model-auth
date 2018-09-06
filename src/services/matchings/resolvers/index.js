@@ -6,8 +6,6 @@ const resolvers = {
           ? { password: 0 }
           : { password: 0, phone: 0, phoneNumber: 0 };
 
-      console.log('select', $select);
-
       return (matching.student = await context.app
         .service('students')
         .get(matching.studentId, {
