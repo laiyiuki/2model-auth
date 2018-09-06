@@ -6,6 +6,7 @@ const {
   disableMultiItemCreate,
   fastJoin,
   iff,
+  iffElse,
   isProvider,
   paramsFromClient,
   // preventChanges,
@@ -36,23 +37,32 @@ module.exports = {
     find: [],
     get: [
       iff(isProvider('external'), [
-        isPlatform('student'),
-        restrictToOwner({ idField: '_id', ownerField: 'studentId' }),
+        iffElse(
+          isPlatform('student'),
+          [restrictToOwner({ idField: '_id', ownerField: 'studentId' })],
+          [disallow()]
+        ),
       ]),
     ],
     create: [
       disableMultiItemCreate(),
       iff(isProvider('external'), [
-        isPlatform('student'),
-        associateCurrentUser({ idField: '_id', as: 'studentId' }),
+        iffElse(
+          isPlatform('student'),
+          [associateCurrentUser({ idField: '_id', as: 'studentId' })],
+          [disallow()]
+        ),
       ]),
     ],
     update: [disallow()],
     patch: [
       disableMultiItemChange(),
       iff(isProvider('external'), [
-        isPlatform('student'),
-        restrictToOwner({ idField: '_id', ownerField: 'studentId' }),
+        iffElse(
+          isPlatform('student'),
+          [restrictToOwner({ idField: '_id', ownerField: 'studentId' })],
+          [disallow()]
+        ),
       ]),
     ],
     remove: [disallow()],

@@ -5,7 +5,6 @@ class LocalVerifier extends Verifier {
   async verify(req, username, password, done) {
     try {
       const { phone, password, platform } = req.body;
-      console.log('req.body', req.body);
 
       if (
         platform !== 'student' &&

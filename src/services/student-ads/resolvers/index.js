@@ -1,16 +1,16 @@
 const resolvers = {
   joins: {
-    teacher: (...args) => async (courseAd, context) => {
-      return (courseAd.teacher = await context.app
-        .service('teachers')
-        .get(courseAd.teacherId, {
+    student: (...args) => async (studentAd, context) => {
+      return (studentAd.student = await context.app
+        .service('students')
+        .get(studentAd.studentId, {
           query: {
             // $select: { password: 0 },
           },
           fastJoinQuery: undefined,
         }));
     },
-    bookmarked: () => async (courseAd, context) => {
+    bookmarked: () => async (studentAd, context) => {
       const { user, payload } = context.params;
 
       if (
@@ -18,12 +18,12 @@ const resolvers = {
         payload.platform === 'student' &&
         user &&
         user.bookmarks &&
-        user.bookmarks.filter(id => courseAd._id.equals(id)).length
+        user.bookmarks.filter(id => studentAd._id.equals(id)).length
       ) {
-        return (courseAd.bookmarked = true);
+        return (studentAd.bookmarked = true);
       }
 
-      return (courseAd.bookmarked = undefined);
+      return (studentAd.bookmarked = undefined);
     },
   },
 };
