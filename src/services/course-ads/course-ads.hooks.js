@@ -1,18 +1,15 @@
 const { authenticate } = require('@feathersjs/authentication').hooks;
 const {
   disallow,
-  discard,
+  // discard,
   disableMultiItemChange,
   disableMultiItemCreate,
   fastJoin,
   iff,
-  iffElse,
   isProvider,
-  keep,
   paramsFromClient,
-  preventChanges,
-  serialize,
-  skipRemainingHooks,
+  // preventChanges,
+  // serialize,
 } = require('feathers-hooks-common');
 const {
   restrictToOwner,
@@ -27,11 +24,10 @@ const {
 } = require('../../hooks');
 
 const resolvers = require('./resolvers');
-const schema = require('./schema');
 
 module.exports = {
   before: {
-    all: [],
+    all: [paramsFromClient('action')],
     find: [],
     get: [
       iff(isProvider('external'), [
@@ -42,6 +38,7 @@ module.exports = {
     ],
     create: [
       disableMultiItemCreate(),
+
       iff(isProvider('external'), [
         authenticate('jwt'),
         isPlatform('teacher'),
@@ -66,12 +63,6 @@ module.exports = {
         iff(isPlatform('student'), refreshParamsEntity('student')),
       ]),
       fastJoin(resolvers, setFastJoinQuery()),
-      // iff(isAuthenticated(), [
-      //   iff(isPlatform('student'), [
-      //     getLatestStudentProfile(),
-      //     serialize(schema),
-      //   ]),
-      // ]),
     ],
     find: [],
     get: [],
