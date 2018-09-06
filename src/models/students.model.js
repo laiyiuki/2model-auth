@@ -12,6 +12,9 @@ module.exports = function(app) {
     {
       facebookId: { type: String, unique: true, sparse: true },
       phone: { type: String, unique: true, sparse: true },
+      phoneNumber: { type: String },
+      countryCode: { type: String },
+
       password: { type: String },
 
       name: { type: String, requiredd: true },

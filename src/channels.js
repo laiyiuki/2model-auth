@@ -1,5 +1,5 @@
 module.exports = function(app) {
-  if(typeof app.channel !== 'function') {
+  if (typeof app.channel !== 'function') {
     // If no real-time functionality has been configured just return
     return;
   }
@@ -9,53 +9,103 @@ module.exports = function(app) {
     app.channel('anonymous').join(connection);
   });
 
-  app.on('login', (authResult, { connection }) => {
+  app.on('login', async (authResult, { connection }) => {
     // connection can be undefined if there is no
     // real-time connection, e.g. when logging in via REST
-    if(connection) {
-      // Obtain the logged in user from the connection
-      // const user = connection.user;
-      
-      // The connection is no longer anonymous, remove it
+    if (connection) {
       app.channel('anonymous').leave(connection);
-
-      // Add it to the authenticated user channel
       app.channel('authenticated').join(connection);
 
-      // Channels can be named anything and joined on any condition 
-      
-      // E.g. to send real-time events only to admins use
-      // if(user.isAdmin) { app.channel('admins').join(connection); }
+      const { payload } = connection;
+      // Student App
+      if (payload && payload.studentId) {
+        app.channel('student').join(connection);
+        app.channel(`student/${payload.studentId}`).join(connection);
+        try {
+          const matchings = await app.service('matchings').find({
+            query: {
+              studentId: payload.studentId,
+              archivedAt: { $exists: false },
+              removedAt: { $exists: false },
+            },
+            fastJoinQuery: {
+              student: false,
+              teacher: false,
+              unreadStudentLogsCount: false,
+              unreadTeacherLogsCount: false,
+            },
+            paginate: false,
+          });
 
-      // If the user has joined e.g. chat rooms
-      // if(Array.isArray(user.rooms)) user.rooms.forEach(room => app.channel(`rooms/${room.id}`).join(channel));
-      
-      // Easily organize users by email and userid for things like messaging
-      // app.channel(`emails/${user.email}`).join(channel);
-      // app.channel(`userIds/$(user.id}`).join(channel);
+          if (matchings.length) {
+            matchings.map(matching => {
+              app.channel(`matching/${matching._id}/student`).join(connection);
+            });
+          }
+        } catch (err) {
+          console.log('channel: fetch matchings error: ', err);
+        }
+      }
+
+      // Teacher App
+      if (payload && payload.teacherId) {
+        app.channel('teacher').join(connection);
+        app.channel(`teacher/${payload.teacherId}`).join(connection);
+
+        try {
+          const matchings = await app.service('matchings').find({
+            query: {
+              teacherId: payload.teacherId,
+              archivedAt: { $exists: false },
+              removedAt: { $exists: false },
+            },
+            fastJoinQuery: {
+              student: false,
+              teacher: false,
+              unreadStudentLogsCount: false,
+              unreadTeacherLogsCount: false,
+            },
+            paginate: false,
+          });
+
+          if (matchings.length) {
+            matchings.map(matching => {
+              app.channel(`matching/${matching._id}/teacher`).join(connection);
+            });
+          }
+        } catch (err) {
+          console.log('channel: fetch matchings error: ', err);
+        }
+      }
     }
   });
 
-  // eslint-disable-next-line no-unused-vars
-  app.publish((data, hook) => {
-    // Here you can add event publishers to channels set up in `channels.js`
-    // To publish only for a specific event use `app.publish(eventname, () => {})`
+  app.service('matchings').on('created', (data, context) => {
+    const studentConnections = app.channel(`student/${data.studentId}`)
+      .connections;
+    const teacherConnections = app.channel(`teacher/${data.teacherId}`)
+      .connections;
 
-    console.log('Publishing all events to all authenticated users. See `channels.js` and https://docs.feathersjs.com/api/channels.html for more information.'); // eslint-disable-line
+    studentConnections.map(connection =>
+      app.channel(`matching/${data._id}/student`).join(connection)
+    );
 
-    // e.g. to publish all service events to all authenticated users use
-    return app.channel('authenticated');
+    teacherConnections.map(connection =>
+      app.channel(`matching/${data._id}/teacher`).join(connection)
+    );
   });
 
-  // Here you can also add service specific event publishers
-  // e.g. the publish the `users` service `created` event to the `admins` channel
-  // app.service('users').publish('created', () => app.channel('admins'));
-  
-  // With the userid and email organization from above you can easily select involved users
-  // app.service('messages').publish(() => {
-  //   return [
-  //     app.channel(`userIds/${data.createdBy}`),
-  //     app.channel(`emails/${data.recipientEmail}`)
-  //   ];
-  // });
+  // ======
+  // Publish Events
+  // ======
+  app.service('matchings').publish('patched', (data, context) => {
+    return [
+      app.channel(`student/${data.studentId}`),
+      app.channel(`teacher/${data.teacherId}`),
+    ];
+  });
+
+  app.service('matching-logs').publish('created', (data, context) => {
+    return [app.channel(`matching/${data.matchingId}/${data.to}`)];
+  });
 };

@@ -1,15 +1,19 @@
 const resolvers = {
   joins: {
-    teacher: (...args) => async (courseAd, context) => {
+    teacher: (contact = false) => async (courseAd, context) => {
+      const $select = contact
+        ? { password: 0 }
+        : { password: 0, phone: 0, phoneNumber: 0 };
+
       return (courseAd.teacher = await context.app
         .service('teachers')
         .get(courseAd.teacherId, {
           query: {
-            // $select: { password: 0 },
+            $select,
           },
-          fastJoinQuery: undefined,
         }));
     },
+
     bookmarked: () => async (courseAd, context) => {
       const { user, payload } = context.params;
 

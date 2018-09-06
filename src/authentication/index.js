@@ -47,21 +47,10 @@ module.exports = function(app) {
   // to create a new valid JWT (e.g. local or oauth2)
   app.service('authentication').hooks({
     before: {
-      all: [
-        // ctx => console.log('before ctx.method', ctx.method),
-        // ctx => {
-        //   ctx.params.authenticated = false;
-        // },
-        // ctx => console.log('before ctx.params.auth', ctx.params.authenticated),
-      ],
       create: [authentication.hooks.authenticate(config.strategies)],
       remove: [authentication.hooks.authenticate('jwt')],
     },
     after: {
-      all: [
-        // ctx => console.log('after ctx.params.payload', ctx.params.payload),
-        //
-      ],
       create: [
         ctx => {
           ctx.result.user = ctx.params.user;
