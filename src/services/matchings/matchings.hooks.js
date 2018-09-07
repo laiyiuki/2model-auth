@@ -30,7 +30,7 @@ module.exports = {
       iff(isProvider('external'), authenticate('jwt')),
     ],
     find: [],
-    get: [isOwner()],
+    get: [iff(isProvider('external'), isOwner())],
     create: [
       disableMultiItemCreate(),
       associateRelevantIds(),
@@ -39,7 +39,12 @@ module.exports = {
     update: [disallow()],
     patch: [
       disableMultiItemChange(),
-      iff(isProvider('external'), [isOwner(), exchangePhoneCheck()]),
+      iff(isProvider('external'), [
+        c => console.log(c.data),
+
+        isOwner(),
+        exchangePhoneCheck(),
+      ]),
     ],
     remove: [disallow()],
   },

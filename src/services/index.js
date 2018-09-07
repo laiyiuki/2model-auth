@@ -7,6 +7,7 @@ const matchings = require('./matchings/matchings.service.js');
 const matchingLogs = require('./matching-logs/matching-logs.service.js');
 const tickets = require('./tickets/tickets.service.js');
 const settings = require('./settings/settings.service.js');
+const admins = require('./admins/admins.service.js');
 // eslint-disable-next-line no-unused-vars
 module.exports = function (app) {
   app.configure(students);
@@ -18,4 +19,5 @@ module.exports = function (app) {
   app.configure(matchingLogs);
   app.configure(tickets);
   app.configure(settings);
+  app.configure(admins);
 };
